@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="bfbc510f-e987-4b32-9811-94efd4924336" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/PyTorch Tutorial 02 - Tensor Basics.py" beforeDir="false" afterPath="$PROJECT_DIR$/PyTorch Tutorial 02 - Tensor Basics.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
