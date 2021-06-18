@@ -9,11 +9,18 @@ import torchaudio
 
 class UrbanSoundDataset(Dataset):
 
-    def __init__(self,annotation_file, audio_dir, transformation, target_sample_rate):
+    def __init__(self,
+                 annotation_file,
+                 audio_dir,
+                 transformation,
+                 target_sample_rate,
+                 num_samples):
+
         self.annotations = pd.read_csv(annotation_file)
         self.audio_dir = audio_dir
         self.transformation = transformation
         self.target_sample_rate = target_sample_rate
+        self.num_samples = num_samples
 
     def __len__(self):
         # len(usd)
@@ -27,9 +34,29 @@ class UrbanSoundDataset(Dataset):
         #signal -> (num_channels, samples) ---> (2, 16000) ---> (1, 16000)
         signal = self._resample_if_necessary(signal, sr)
         signal = self._mix_down_if_necessary(signal)
+
+        signal = self._cut_if_necessary(signal)
+        signal = self._right_pad_if_necessary(signal)
+
         signal = self.transformation(signal)
 
         return signal,label
+
+    def _cut_if_necessary(self, signal):
+        #signal - > Tensor -> (1, num_samples) -- > (1, 50000) --> (1, 22050)
+        if signal.shape[1] > self.num_samples:
+            signal = signal[:,:self.num_samples]
+        return signal
+
+    def _right_pad_if_necessary(self,signal):
+        length_signal = signal.shape[1]
+        if length_signal < self.num_samples:
+            # [1, 1, 1] ---> [1, 1, 1, 0, 0, 0] #Right Padding
+            num_missing_samples = self.num_samples - length_signal
+            last_dim_padding = (0, num_missing_samples)  # (1,2) #didntget it much
+            # [1, 1, 1] -> [0, 1, 1, 1, 0, 0]
+            signal = torch.nn.functional.pad(signal, last_dim_padding)
+        return signal
 
     def _resample_if_necessary(self, signal, sr):
         if sr != self.target_sample_rate:
@@ -56,7 +83,8 @@ if __name__ == "__main__":
 
     ANNOTATION_FILE = "/media/hashan/Laptop Hard Bk/python projects-B/Research/Sound/jupyter/Audio_classification_iron/New Data/Urban_sound_8k/UrbanSound8K.csv"
     AUDIO_DIR = "/media/hashan/Laptop Hard Bk/python projects-B/Research/Sound/jupyter/Audio_classification_iron/New Data/Urban_sound_8k"
-    SAMPLE_RATE = 16000
+    SAMPLE_RATE = 22050
+    NUM_SAMPLES = 22050
 
     #This object passed into UrbanSoundDatasetClass
     #ms = melspectrogram(signal) ----> in get item method
@@ -68,6 +96,13 @@ if __name__ == "__main__":
     )
 
 
-    usd = UrbanSoundDataset(ANNOTATION_FILE, AUDIO_DIR, mel_spectrogram, SAMPLE_RATE)
+    usd = UrbanSoundDataset(ANNOTATION_FILE,
+                            AUDIO_DIR,
+                            mel_spectrogram,
+                            SAMPLE_RATE,
+                            NUM_SAMPLES)
+
     print(f"There are {len(usd)} samples in the dataset")
-    signal, label = usd[0]
+    signal, label = usd[1]
+
+    a=1
